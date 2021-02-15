@@ -134,13 +134,17 @@ namespace rogu
 
 				new ResourceBlock(",", new rogu::Tile({new rogu::Sprite({12, 6})}, 0)),
 				new ResourceBlock(".", new rogu::Tile({new rogu::Sprite({14, 6})}, 0)),
-				new ResourceBlock("!", new rogu::Tile({new rogu::Sprite({1, 6})}, 0)),
+				new ResourceBlock("!", new rogu::Tile({new rogu::Sprite({1 , 6})}, 0)),
 				new ResourceBlock("?", new rogu::Tile({new rogu::Sprite({15, 7})}, 0)),
 				new ResourceBlock(":", new rogu::Tile({new rogu::Sprite({10, 7})}, 0)),
 				new ResourceBlock("-", new rogu::Tile({new rogu::Sprite({13, 6})}, 0)),
 				new ResourceBlock("_", new rogu::Tile({new rogu::Sprite({15, 9})}, 0)),
+				new ResourceBlock("'", new rogu::Tile({new rogu::Sprite({7 , 6})}, 0)),
 
 				new ResourceBlock("@", new rogu::Tile({new rogu::Sprite({0, 8})}, 0)),
+				new ResourceBlock("$", new rogu::Tile({new rogu::Sprite({4, 6})}, 0)),
+				new ResourceBlock("£", new rogu::Tile({new rogu::Sprite({12, 13})}, 0)),
+				new ResourceBlock("µ", new rogu::Tile({new rogu::Sprite({6, 18})}, 0)),
 
 				new ResourceBlock("<dither_soft>", new rogu::Tile({new rogu::Sprite({0, 15})}, 0)),
 				new ResourceBlock("<dither_medium>", new rogu::Tile({new rogu::Sprite({1, 15})}, 0)),

@@ -37,7 +37,7 @@ namespace rogu
 			decalSheet = std::make_unique<olc::Decal>(spriteSheet.get());
 
 			timer = 0;
-			spriteSheetDraw();
+			introDraw();
 			return true;
 		}
 
@@ -45,6 +45,16 @@ namespace rogu
 		{
 
 			//std::cout << "deltaTime: " << fElapsedTime << "\n";
+			introTimer -= fElapsedTime;
+			if (introTimer > -100)
+			{
+				introTimer -= fElapsedTime;
+				if (introTimer <= 0)
+				{
+					introTimer = -250;
+					spriteSheetDraw();
+				}
+			}
 
 			if (GetKey(olc::F).bHeld)
 			{
@@ -122,26 +132,14 @@ namespace rogu
 			//SetPixelMode(olc::Pixel::NORMAL);
 		}
 
-		void spriteSheetDraw()
+		void introDraw()
 		{
-			rogu::Tile* stoneWall = resourceManager.getTileFromBlock("<stone_wall>");
-			rogu::Tile* wisp = resourceManager.getTileFromBlock("<wisp>");
 			rogu::Tile* ditherFlip = resourceManager.getTileFromBlock("<dither_flip>");
 			rogu::Tile* ditherSoft = resourceManager.getTileFromBlock("<dither_soft>");
 
-			// LOG_SCREEN
-			renderer.drawPanel(0, fLogYStart, fInvXStart, (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
-			// GAME_SCREEN
-			renderer.drawPanel(0, 0, fInvXStart, fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_LEFT_TOP);
-			// INV_SCREEN
-			renderer.drawPanel(fInvXStart - 1, (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart, (SCREEN_WIDTH / TILE_SIZE) - fInvXStart + 1, fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
-			// MAP_SCREEN
-			renderer.drawPanel(fInvXStart - 1, 0, (SCREEN_WIDTH / TILE_SIZE) - fInvXStart + 1, (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart + 1, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
-
-
 			//Draw ROGU logo
-			int centerX = gameWindowPos.x + (gameWindowSize.x / 2);
-			int centerY = gameWindowPos.y + (gameWindowSize.y / 2) - 2;
+			int centerX = (SCREEN_WIDTH / TILE_SIZE) * 0.5f;
+			int centerY = (SCREEN_HEIGHT / TILE_SIZE) * 0.5f;
 			renderer.drawPanel(centerX - 7, centerY - 7, 15, 15, 1, nullptr, ditherFlip, BorderType::BORDER_FULL);
 
 			//R
@@ -161,15 +159,49 @@ namespace rogu
 			renderer.drawPanel(centerX + 1, centerY + 1, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
 			renderer.drawPanel(centerX + 2, centerY + 1, 3, 2, 1, nullptr, nullptr, BorderType::BORDER_NONE);
 
+			renderer.writeTextToArea(centerX - 5, centerY + 9, 15, resourceManager.requestSpriteString("ROGU Engine"));
+		}
+
+		void spriteSheetDraw()
+		{
+			rogu::Tile* stoneWall = resourceManager.getTileFromBlock("<stone_wall>");
+			rogu::Tile* wisp = resourceManager.getTileFromBlock("<wisp>");
+			rogu::Tile* ditherFlip = resourceManager.getTileFromBlock("<dither_flip>");
+			rogu::Tile* ditherSoft = resourceManager.getTileFromBlock("<dither_soft>");
+
+			// LOG_SCREEN
+			renderer.drawPanel(0, fLogYStart, (SCREEN_WIDTH / TILE_SIZE), (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
+			// GAME_SCREEN
+			renderer.drawPanel(0, 0, (SCREEN_WIDTH / TILE_SIZE), fLogYStart + 1, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
+
 			//TEST TEXT
-			renderer.writeTextToArea(2, fLogYStart + 2, fInvXStart - 4, resourceManager.requestSpriteString("This is a project to see if a smaller single-buffer engine is a viable concept, This is a project by Sebastian for Blind Hate Machine. You can even write tiles! Like: <fountain> and <wisp>!"));
-			renderer.writeTextToArea(centerX - 5, centerY + 9, 65, resourceManager.requestSpriteString("ROGU Engine"));
+			renderer.writeTextToArea(2, fLogYStart + 2, (SCREEN_WIDTH / TILE_SIZE) - 4, resourceManager.requestSpriteString("This is a project to see if a smaller single-buffer engine is a viable concept, This is a project by Sebastian for Blind Hate Machine. You can even write tiles! Like: <fountain> and <wisp>!"));
 			
+			int centerX = (SCREEN_WIDTH / TILE_SIZE) * 0.5f;
+			int centerY = (SCREEN_HEIGHT / TILE_SIZE) * 0.5f;
+			renderer.writeTextToArea(centerX - 5, centerY - 3, 15, resourceManager.requestSpriteString("ROGU Engine"));
+			renderer.writeTextToArea(centerX - 10, centerY - 13, 22, resourceManager.requestSpriteString("Sebastian Alkstrand's"));
+
 			for (int q = 2; q < fLogYStart - 1; q++)
 			{
-				renderer.writeTextToArea(2, q, fInvXStart - 4, resourceManager.requestSpriteString("<dither_flip> <dither_soft><dither_medium><dither_hard> @ <dither_hard><dither_medium><dither_soft> <dither_flip>"));
-				renderer.writeTextToArea(fInvXStart - 15, q, fInvXStart - 4, resourceManager.requestSpriteString("<dither_flip> <dither_soft><dither_medium><dither_hard> @ <dither_hard><dither_medium><dither_soft> <dither_flip>"));
+				renderer.writeTextToArea(2, q, (SCREEN_WIDTH / TILE_SIZE) - 4, resourceManager.requestSpriteString("<dither_flip> <dither_soft><dither_medium><dither_hard> @ <dither_hard><dither_medium><dither_soft> <dither_flip>"));
+				renderer.writeTextToArea((SCREEN_WIDTH / TILE_SIZE) - 15, q, (SCREEN_WIDTH / TILE_SIZE) - 4, resourceManager.requestSpriteString("<dither_flip> <dither_soft><dither_medium><dither_hard> @ <dither_hard><dither_medium><dither_soft> <dither_flip>"));
 			}
+
+			//R
+			renderer.drawPanel(centerX - 15, centerY - 11, 7, 7, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX - 14, centerY - 9, 6, 5, 1, nullptr, nullptr, BorderType::BORDER_NONE);
+			//O
+			renderer.drawPanel(centerX - 7, centerY - 11, 7, 7, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			//G
+			renderer.drawPanel(centerX + 1, centerY - 11, 7, 7, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX + 2, centerY - 10, 6, 6, 1, nullptr, nullptr, BorderType::BORDER_NONE);
+			renderer.drawPanel(centerX + 1, centerY - 8, 7, 4, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.writeToBufferTilePos(nullptr, centerX + 2, centerY - 8);
+			renderer.writeToBufferTilePos(nullptr, centerX + 3, centerY - 8);
+			//U
+			renderer.drawPanel(centerX + 9, centerY - 11, 7, 7, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX + 10, centerY - 11, 5, 5, 1, nullptr, nullptr, BorderType::BORDER_NONE);
 		}
 
 	private:
@@ -182,6 +214,7 @@ namespace rogu
 		std::unique_ptr<olc::Sprite> spriteSheet;
 		std::unique_ptr<olc::Decal> decalSheet;
 		float timeBetweenFrames = 0.22f;
+		float introTimer = 5.f;
 		float timer;
 	};
 }
