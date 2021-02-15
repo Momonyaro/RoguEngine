@@ -8,14 +8,15 @@
 namespace rogu
 {
 	#define TILE_SIZE 12
-	#define RES_MULTIPLIER 1 
+	#define RES_MULTIPLIER 1
 	#define SCREEN_PIXEL_SIZE 2
-	#define SCREEN_WIDTH (70 * TILE_SIZE * RES_MULTIPLIER)
+	#define SCREEN_WIDTH (72 * TILE_SIZE * RES_MULTIPLIER)
 	#define SCREEN_HEIGHT (41 * TILE_SIZE * RES_MULTIPLIER)
 	#define CENTER_POS_X ((SCREEN_WIDTH / 2) - SCREEN_WIDTH % TILE_SIZE) / TILE_SIZE
 	#define CENTER_POS_Y ((SCREEN_HEIGHT / 2) - SCREEN_HEIGHT % TILE_SIZE) / TILE_SIZE
 
-	#define USING_DECALS true;
+	//Why wouldn't you use these?
+	#define USING_DECALS true 
 
 	class RoguCore : public olc::PixelGameEngine
 	{
@@ -57,8 +58,8 @@ namespace rogu
 				renderer.writeToBufferTilePos(randTile, pos.x, pos.y);
 #if USING_DECALS
 				DrawPartialDecal(pos * TILE_SIZE, decalSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
-#elif
-				//DrawPartialSprite(pos.x * TILE_SIZE, pos.y * TILE_SIZE, spriteSheet, dimensions.x, dimensions.y, TILE_SIZE, TILE_SIZE);
+#else
+				DrawPartialSprite(pos * TILE_SIZE, spriteSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
 #endif
 			}
 			if (GetKey(olc::C).bHeld)
@@ -76,8 +77,8 @@ namespace rogu
 				olc::vi2d dimensions = resourceManager.getTileFromBlock("<stone_wall>")->getSpriteDimensions();
 #if USING_DECALS
 				DrawPartialDecal({ (float)GetMousePos().x - (GetMousePos().x % TILE_SIZE), (float)GetMousePos().y - (GetMousePos().y % TILE_SIZE) }, decalSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
-#elif
-				DrawPartialSprite(GetMousePos().x - (GetMousePos().x % TILE_SIZE), GetMousePos().y - (GetMousePos().y % TILE_SIZE), spriteSheet, dimensions.x, dimensions.y, TILE_SIZE, TILE_SIZE);
+#else
+				DrawPartialSprite({ (int)GetMousePos().x - (GetMousePos().x % TILE_SIZE), (int)GetMousePos().y - (GetMousePos().y % TILE_SIZE) }, spriteSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
 #endif
 			}
 			if (GetMouse(1).bHeld)
@@ -113,8 +114,8 @@ namespace rogu
 					olc::vi2d position = olc::vi2d(x * TILE_SIZE, y * TILE_SIZE);
 #if USING_DECALS
 					DrawPartialDecal(position, decalSheet.get(), {dimensions.x * (float)TILE_SIZE, dimensions.y * (float)TILE_SIZE}, { TILE_SIZE, TILE_SIZE }, { 1.0f, 1.0f });
-#elif
-					//DrawPartialSprite(x * TILE_SIZE, y * TILE_SIZE, spriteSheet, dimensions.x, dimensions.y, TILE_SIZE, TILE_SIZE);
+#else
+					DrawPartialSprite(position, spriteSheet.get(), { dimensions.x * TILE_SIZE, dimensions.y * TILE_SIZE }, { TILE_SIZE, TILE_SIZE });
 #endif
 					boardTiles[y * boardDimensions.x + x]->updated = false;
 				}
@@ -128,16 +129,17 @@ namespace rogu
 			rogu::Tile* ditherFlip = resourceManager.getTileFromBlock("<dither_flip>");
 			rogu::Tile* ditherSoft = resourceManager.getTileFromBlock("<dither_soft>");
 
-			renderer.drawPanel(0, (SCREEN_HEIGHT / TILE_SIZE) - 11, (SCREEN_WIDTH / TILE_SIZE) - 10, 11, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
-			renderer.drawPanel((SCREEN_WIDTH / TILE_SIZE) - 10, 10, 10, (SCREEN_HEIGHT / TILE_SIZE) - 10, 1, nullptr, stoneWall, rogu::BorderType::BORDER_RIGHT_BOTTOM);
-			renderer.drawPanel((SCREEN_WIDTH / TILE_SIZE) - 11, 0, 11, 10, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
-
-			renderer.drawPanel(gameWindowPos.x - 1, gameWindowPos.y - 1, gameWindowSize.x + 1, gameWindowSize.y + 1, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
+			// LOG_SCREEN
+			renderer.drawPanel(0, fLogYStart, fInvXStart, (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
+			// GAME_SCREEN
+			renderer.drawPanel(0, 0, fInvXStart, fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_LEFT_TOP);
+			// INV_SCREEN
+			renderer.drawPanel(fInvXStart - 1, (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart, (SCREEN_WIDTH / TILE_SIZE) - fInvXStart + 1, fLogYStart, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
+			// MAP_SCREEN
+			renderer.drawPanel(fInvXStart - 1, 0, (SCREEN_WIDTH / TILE_SIZE) - fInvXStart + 1, (SCREEN_HEIGHT / TILE_SIZE) - fLogYStart + 1, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
 
 
 			//Draw ROGU logo
-			
-
 			int centerX = gameWindowPos.x + (gameWindowSize.x / 2);
 			int centerY = gameWindowPos.y + (gameWindowSize.y / 2) - 2;
 			renderer.drawPanel(centerX - 7, centerY - 7, 15, 15, 1, nullptr, ditherFlip, BorderType::BORDER_FULL);
@@ -160,16 +162,23 @@ namespace rogu
 			renderer.drawPanel(centerX + 2, centerY + 1, 3, 2, 1, nullptr, nullptr, BorderType::BORDER_NONE);
 
 			//TEST TEXT
-			renderer.writeTextToArea(2, 32, 56, resourceManager.requestSpriteString("This is a project to see if a smaller single-buffer engine is a viable concept, This is a project by Sebastian for Blind Hate Machine."));
-			renderer.writeTextToArea(2, 37, 56, resourceManager.requestSpriteString("You can even write tiles! Like: <fountain> and <wisp>!"));
+			renderer.writeTextToArea(2, fLogYStart + 2, fInvXStart - 4, resourceManager.requestSpriteString("This is a project to see if a smaller single-buffer engine is a viable concept, This is a project by Sebastian for Blind Hate Machine. You can even write tiles! Like: <fountain> and <wisp>!"));
 			renderer.writeTextToArea(centerX - 5, centerY + 9, 65, resourceManager.requestSpriteString("ROGU Engine"));
+			
+			for (int q = 2; q < fLogYStart - 1; q++)
+			{
+				renderer.writeTextToArea(2, q, fInvXStart - 4, resourceManager.requestSpriteString("<dither_flip> <dither_soft><dither_medium><dither_hard> @ <dither_hard><dither_medium><dither_soft> <dither_flip>"));
+				renderer.writeTextToArea(fInvXStart - 15, q, fInvXStart - 4, resourceManager.requestSpriteString("<dither_flip> <dither_soft><dither_medium><dither_hard> @ <dither_hard><dither_medium><dither_soft> <dither_flip>"));
+			}
 		}
 
 	private:
 		rogu::BoardRenderer renderer = rogu::BoardRenderer(SCREEN_WIDTH / TILE_SIZE, SCREEN_HEIGHT / TILE_SIZE, nullptr, TILE_SIZE);
 		rogu::ResourceManager resourceManager;
 		olc::vi2d gameWindowPos = olc::vi2d(1, 1);
-		olc::vi2d gameWindowSize = olc::vi2d((SCREEN_WIDTH / TILE_SIZE) - 11, (SCREEN_HEIGHT / TILE_SIZE) - 11);
+		int fLogYStart = (int)(SCREEN_HEIGHT * 0.8f) / TILE_SIZE;
+		int fInvXStart = (int)(SCREEN_WIDTH * 0.84f) / TILE_SIZE;
+		olc::vi2d gameWindowSize = olc::vi2d(fInvXStart - gameWindowPos.x, fLogYStart);
 		std::unique_ptr<olc::Sprite> spriteSheet;
 		std::unique_ptr<olc::Decal> decalSheet;
 		float timeBetweenFrames = 0.22f;
@@ -180,7 +189,7 @@ namespace rogu
 int main()
 {
 	rogu::RoguCore core;
-	if (core.Construct(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_PIXEL_SIZE, SCREEN_PIXEL_SIZE, false, true))
+	if (core.Construct(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_PIXEL_SIZE, SCREEN_PIXEL_SIZE, true, true))
 		core.Start();
 	return 0;
 }
