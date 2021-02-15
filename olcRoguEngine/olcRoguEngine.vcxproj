@@ -154,6 +154,8 @@
     <ClCompile Include="roguSrc\tiles\tile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="roguSrc\entities\Entity.h" />
+    <ClInclude Include="roguSrc\entities\entityManager.h" />
     <ClInclude Include="roguSrc\olcPixelGameEngine.h" />
     <ClInclude Include="roguSrc\rendering\boardRenderer.h" />
     <ClInclude Include="roguSrc\res_handling\ResourceBlock.h" />

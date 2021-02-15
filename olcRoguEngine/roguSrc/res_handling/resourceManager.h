@@ -146,12 +146,19 @@ namespace rogu
 				new ResourceBlock("£", new rogu::Tile({new rogu::Sprite({12, 13})}, 0)),
 				new ResourceBlock("µ", new rogu::Tile({new rogu::Sprite({6, 18})}, 0)),
 
+				new ResourceBlock("<up>", new rogu::Tile({new rogu::Sprite({8, 5})}, 0)),
+				new ResourceBlock("<down>", new rogu::Tile({new rogu::Sprite({9, 5})}, 0)),
+				new ResourceBlock("<right>", new rogu::Tile({new rogu::Sprite({10, 5})}, 0)),
+				new ResourceBlock("<left>", new rogu::Tile({new rogu::Sprite({11, 5})}, 0)),
+
 				new ResourceBlock("<dither_soft>", new rogu::Tile({new rogu::Sprite({0, 15})}, 0)),
 				new ResourceBlock("<dither_medium>", new rogu::Tile({new rogu::Sprite({1, 15})}, 0)),
 				new ResourceBlock("<dither_hard>", new rogu::Tile({new rogu::Sprite({2, 15})}, 0)),
 				new ResourceBlock("<dither_flip>", new rogu::Tile({new rogu::Sprite({0, 15}), new rogu::Sprite({1, 15}), new rogu::Sprite({2, 15}), new rogu::Sprite({1, 15})}, 0)),
 				new ResourceBlock("<stone_wall>", new rogu::Tile({new rogu::Sprite({0, 0})}, 0)),
 				new ResourceBlock("<wisp>", new rogu::Tile({new rogu::Sprite({13, 3}), new rogu::Sprite({14, 3}), new rogu::Sprite({15, 3}), new rogu::Sprite({14, 3})}, 0)),
+				new ResourceBlock("<wisp1>", new rogu::Tile({new rogu::Sprite({14, 3}), new rogu::Sprite({15, 3}), new rogu::Sprite({14, 3}), new rogu::Sprite({13, 3})}, 0)),
+				new ResourceBlock("<wisp2>", new rogu::Tile({new rogu::Sprite({15, 3}), new rogu::Sprite({14, 3}), new rogu::Sprite({13, 3}), new rogu::Sprite({14, 3})}, 0)),
 				new ResourceBlock("<fountain>", new rogu::Tile({new rogu::Sprite({12, 0}), new rogu::Sprite({13, 0})}, 0)),
 		};
 	};

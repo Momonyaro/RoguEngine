@@ -49,12 +49,19 @@ namespace rogu
 			if (introTimer > -100)
 			{
 				introTimer -= fElapsedTime;
+				renderer.writeToAll(nullptr);
+				introDraw();
 				if (introTimer <= 0)
 				{
 					introTimer = -250;
 					spriteSheetDraw();
 				}
 			}
+
+			if (GetKey(olc::RIGHT).bPressed) { playerPosTemp.x += 1; }
+			else if (GetKey(olc::LEFT).bPressed) { playerPosTemp.x -= 1; }
+			else if (GetKey(olc::UP).bPressed) { playerPosTemp.y -= 1; }
+			else if (GetKey(olc::DOWN).bPressed) { playerPosTemp.y += 1; }
 
 			if (GetKey(olc::F).bHeld)
 			{
@@ -111,7 +118,6 @@ namespace rogu
 		void render()
 		{
 			Clear(olc::BLACK);
-			//SetPixelMode(olc::Pixel::MASK);
 			// Called once at the start, so create things here
 			std::vector<rogu::Tile*> boardTiles = renderer.getAllTilesInBuffer();
 			olc::vi2d boardDimensions = renderer.getBoardDimensions();
@@ -129,37 +135,71 @@ namespace rogu
 #endif
 					boardTiles[y * boardDimensions.x + x]->updated = false;
 				}
-			//SetPixelMode(olc::Pixel::NORMAL);
+
+			if (introTimer < -100)
+				DrawPartialDecal(playerPosTemp * TILE_SIZE, decalSheet.get(), { 15 * (float)TILE_SIZE, 0 * (float)TILE_SIZE }, { TILE_SIZE, TILE_SIZE }, { 1.0f, 1.0f });
 		}
 
 		void introDraw()
 		{
 			rogu::Tile* ditherFlip = resourceManager.getTileFromBlock("<dither_flip>");
 			rogu::Tile* ditherSoft = resourceManager.getTileFromBlock("<dither_soft>");
+			rogu::Tile* wisp = resourceManager.getTileFromBlock("<wisp>");
+			rogu::Tile* wisp1 = resourceManager.getTileFromBlock("<wisp1>");
+			rogu::Tile* wisp2 = resourceManager.getTileFromBlock("<wisp2>");
+
+			//Draw Fire?
+			if (introTimer < 9.f)
+			{
+				for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 3; i++)
+				{
+					renderer.writeToBufferTilePos(wisp, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4) + ((SCREEN_HEIGHT / TILE_SIZE) - 4));
+					renderer.writeToBufferTilePos(wisp, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4));
+				}
+
+				if (introTimer < 7.f)
+				{
+					for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 2; i++)
+					{
+						renderer.writeToBufferTilePos(wisp1, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 3) + ((SCREEN_HEIGHT / TILE_SIZE) - 7));
+						renderer.writeToBufferTilePos(wisp1, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 3) + 4);
+					}
+
+					if (introTimer < 6.f)
+					{
+						for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 1; i++)
+						{
+							renderer.writeToBufferTilePos(wisp2, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4) + ((SCREEN_HEIGHT / TILE_SIZE) - 11));
+							renderer.writeToBufferTilePos(wisp2, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4) + 7);
+						}
+					}
+				}
+			}
+			
 
 			//Draw ROGU logo
 			int centerX = (SCREEN_WIDTH / TILE_SIZE) * 0.5f;
 			int centerY = (SCREEN_HEIGHT / TILE_SIZE) * 0.5f;
-			renderer.drawPanel(centerX - 7, centerY - 7, 15, 15, 1, nullptr, ditherFlip, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX - 7, centerY - 8, 15, 15, 1, nullptr, ditherFlip, BorderType::BORDER_FULL);
 
 			//R
-			renderer.drawPanel(centerX - 5, centerY - 5, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
-			renderer.drawPanel(centerX - 4, centerY - 3, 4, 3, 1, nullptr, nullptr, BorderType::BORDER_NONE);
+			renderer.drawPanel(centerX - 5, centerY - 6, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX - 4, centerY - 4, 4, 3, 1, nullptr, nullptr, BorderType::BORDER_NONE);
 
 			//O
-			renderer.drawPanel(centerX + 1, centerY - 5, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX + 1, centerY - 6, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
 
 			//G
-			renderer.drawPanel(centerX - 5, centerY + 1, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
-			renderer.writeToBufferTilePos(nullptr, centerX - 1, centerY + 2);
-			renderer.writeToBufferTilePos(ditherSoft, centerX - 2, centerY + 3);
-			renderer.writeToBufferTilePos(ditherSoft, centerX - 3, centerY + 3);
+			renderer.drawPanel(centerX - 5, centerY, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.writeToBufferTilePos(nullptr, centerX - 1, centerY + 1);
+			renderer.writeToBufferTilePos(ditherSoft, centerX - 2, centerY + 2);
+			renderer.writeToBufferTilePos(ditherSoft, centerX - 3, centerY + 2);
 
 			//U
-			renderer.drawPanel(centerX + 1, centerY + 1, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
-			renderer.drawPanel(centerX + 2, centerY + 1, 3, 2, 1, nullptr, nullptr, BorderType::BORDER_NONE);
+			renderer.drawPanel(centerX + 1, centerY, 5, 5, 1, nullptr, ditherSoft, BorderType::BORDER_FULL);
+			renderer.drawPanel(centerX + 2, centerY, 3, 2, 1, nullptr, nullptr, BorderType::BORDER_NONE);
 
-			renderer.writeTextToArea(centerX - 5, centerY + 9, 15, resourceManager.requestSpriteString("ROGU Engine"));
+			renderer.writeTextToArea(centerX - 5, centerY + 8, 15, resourceManager.requestSpriteString("ROGU Engine"));
 		}
 
 		void spriteSheetDraw()
@@ -179,8 +219,9 @@ namespace rogu
 			
 			int centerX = (SCREEN_WIDTH / TILE_SIZE) * 0.5f;
 			int centerY = (SCREEN_HEIGHT / TILE_SIZE) * 0.5f;
-			renderer.writeTextToArea(centerX - 5, centerY - 3, 15, resourceManager.requestSpriteString("ROGU Engine"));
 			renderer.writeTextToArea(centerX - 10, centerY - 13, 22, resourceManager.requestSpriteString("Sebastian Alkstrand's"));
+			renderer.writeTextToArea(centerX - 5, centerY - 3, 15, resourceManager.requestSpriteString("ROGU Engine"));
+			renderer.writeTextToArea(centerX - 11, centerY + 2, 22, resourceManager.requestSpriteString("You can move with <up><down><left><right>"));
 
 			for (int q = 2; q < fLogYStart - 1; q++)
 			{
@@ -214,8 +255,10 @@ namespace rogu
 		std::unique_ptr<olc::Sprite> spriteSheet;
 		std::unique_ptr<olc::Decal> decalSheet;
 		float timeBetweenFrames = 0.22f;
-		float introTimer = 5.f;
+		float introTimer = 12.f;
 		float timer;
+
+		olc::vi2d playerPosTemp = { (SCREEN_WIDTH / TILE_SIZE) * 0.5f, (SCREEN_HEIGHT / TILE_SIZE) * 0.5f };
 	};
 }
 

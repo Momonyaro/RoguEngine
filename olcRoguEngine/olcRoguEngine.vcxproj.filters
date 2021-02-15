@@ -70,5 +70,11 @@
     <ClInclude Include="roguSrc\res_handling\ResourceBlock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="roguSrc\entities\entityManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="roguSrc\entities\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
