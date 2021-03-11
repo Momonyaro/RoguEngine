@@ -3,11 +3,12 @@
 namespace rogu
 {
 
-	Tile::Tile(std::vector<rogu::Sprite*> tileSprites, int startSprIndex)
+	Tile::Tile(std::vector<rogu::Sprite*> tileSprites, int startSprIndex, bool collider)
 	{
 		Tile::tileSprites = tileSprites;
-		currentSprIndex = startSprIndex;
-		canUpdate = (tileSprites.size() > 1);
+		Tile::currentSprIndex = startSprIndex;
+		Tile::canUpdate = (tileSprites.size() > 1);
+		Tile::collider = collider;
 	}
 
 	void Tile::update()

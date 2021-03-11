@@ -8,7 +8,7 @@ namespace rogu
 	class Tile
 	{
 	public:
-		Tile(std::vector<rogu::Sprite*> tileSprites, int startSprIndex);
+		Tile(std::vector<rogu::Sprite*> tileSprites, int startSprIndex, bool collider = false);
 
 		void update();
 
@@ -17,6 +17,8 @@ namespace rogu
 			if (tileSprites.size() <= currentSprIndex) return tileSprites[0]->getSpriteDimensions();
 			return tileSprites[currentSprIndex]->getSpriteDimensions();
 		}
+
+		inline bool getCollider() { return collider; }
 
 	public:
 		bool updated = false;
@@ -27,5 +29,6 @@ namespace rogu
 		float flipFrequency;
 		float flip;
 		int currentSprIndex = 0;
+		bool collider = false;
 	};
 }

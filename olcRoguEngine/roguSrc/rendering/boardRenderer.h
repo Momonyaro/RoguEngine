@@ -42,6 +42,11 @@ namespace rogu
 			return boardTiles[y * boardWidth + x];
 		}
 
+		bool getIfTileIsCollider(int x, int y)
+		{
+			return (boardTiles[y * boardWidth + x] == nullptr) ? false : boardTiles[y * boardWidth + x]->getCollider();
+		}
+
 		std::vector<rogu::Tile*> getAllTilesInBuffer() { return boardTiles; }
 
 		olc::vi2d getBoardDimensions() { return olc::vi2d(boardWidth, boardHeight); }

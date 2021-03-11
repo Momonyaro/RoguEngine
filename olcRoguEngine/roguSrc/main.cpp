@@ -4,6 +4,8 @@
 #include "res_handling/resourceManager.h"
 #include "res_handling/ResourceBlock.h"
 #include "tiles/tile.h"
+#include "entities/entityManager.h"
+#include "entities/entity.h"
 
 namespace rogu
 {
@@ -36,6 +38,10 @@ namespace rogu
 
 			decalSheet = std::make_unique<olc::Decal>(spriteSheet.get());
 
+			Entity* player = entityManager.getPlayer();
+			player->setPosition((SCREEN_WIDTH / TILE_SIZE) * 0.5f, (SCREEN_HEIGHT / TILE_SIZE) * 0.5f);
+			entityManager.setPlayer(player);
+
 			timer = 0;
 			introDraw();
 			return true;
@@ -49,60 +55,19 @@ namespace rogu
 			if (introTimer > -100)
 			{
 				introTimer -= fElapsedTime;
-				renderer.writeToAll(nullptr);
-				introDraw();
+				float diff = introTimer - std::floorf(introTimer);
+				if ((diff >= 0.0f && diff < 0.06f) || (diff >= 0.5f && diff < 0.56f))
+				{
+					renderer.writeToAll(nullptr);
+					introDraw();
+				}
 				if (introTimer <= 0)
 				{
 					introTimer = -250;
-					spriteSheetDraw();
+					mainMenuDraw();
 				}
 			}
 
-			if (GetKey(olc::RIGHT).bPressed) { playerPosTemp.x += 1; }
-			else if (GetKey(olc::LEFT).bPressed) { playerPosTemp.x -= 1; }
-			else if (GetKey(olc::UP).bPressed) { playerPosTemp.y -= 1; }
-			else if (GetKey(olc::DOWN).bPressed) { playerPosTemp.y += 1; }
-
-			if (GetKey(olc::F).bHeld)
-			{
-				renderer.writeToAllEmpty(resourceManager.getTileFromBlock("<stone_wall>"));
-			}
-			if (GetKey(olc::R).bHeld)
-			{
-				olc::vi2d pos = olc::vi2d((rand() % (gameWindowSize.x - 1)) + gameWindowPos.x, (rand() % (gameWindowSize.y - 1)) + gameWindowPos.y);
-				rogu::Tile* randTile = resourceManager.getTileFromBlock("<wisp>");
-				olc::vi2d dimensions = randTile->getSpriteDimensions();
-				renderer.writeToBufferTilePos(randTile, pos.x, pos.y);
-#if USING_DECALS
-				DrawPartialDecal(pos * TILE_SIZE, decalSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
-#else
-				DrawPartialSprite(pos * TILE_SIZE, spriteSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
-#endif
-			}
-			if (GetKey(olc::C).bHeld)
-			{
-				renderer.writeToArea(0, 0, SCREEN_WIDTH / TILE_SIZE, SCREEN_HEIGHT / TILE_SIZE, nullptr);
-			}
-			if (GetKey(olc::T).bPressed)
-			{
-				spriteSheetDraw();
-			}
-
-			if (GetMouse(0).bHeld)
-			{
-				renderer.writeToBufferScreenPos(resourceManager.getTileFromBlock("<stone_wall>"), GetMousePos().x, GetMousePos().y);
-				olc::vi2d dimensions = resourceManager.getTileFromBlock("<stone_wall>")->getSpriteDimensions();
-#if USING_DECALS
-				DrawPartialDecal({ (float)GetMousePos().x - (GetMousePos().x % TILE_SIZE), (float)GetMousePos().y - (GetMousePos().y % TILE_SIZE) }, decalSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
-#else
-				DrawPartialSprite({ (int)GetMousePos().x - (GetMousePos().x % TILE_SIZE), (int)GetMousePos().y - (GetMousePos().y % TILE_SIZE) }, spriteSheet.get(), dimensions, { TILE_SIZE, TILE_SIZE });
-#endif
-			}
-			if (GetMouse(1).bHeld)
-			{
-				renderer.writeToBufferScreenPos(nullptr, GetMousePos().x, GetMousePos().y);
-				render();
-			}
 
 			timer += fElapsedTime;
 			if (timer >= timeBetweenFrames)
@@ -137,7 +102,19 @@ namespace rogu
 				}
 
 			if (introTimer < -100)
-				DrawPartialDecal(playerPosTemp * TILE_SIZE, decalSheet.get(), { 15 * (float)TILE_SIZE, 0 * (float)TILE_SIZE }, { TILE_SIZE, TILE_SIZE }, { 1.0f, 1.0f });
+			{
+				Entity* player = entityManager.getPlayer();
+				olc::vi2d vPos = player->getPosition();
+
+				if (GetKey(olc::RIGHT).bPressed && !renderer.getIfTileIsCollider(vPos.x + 1, vPos.y)) { player->move(1, 0); }
+				else if (GetKey(olc::LEFT).bPressed && !renderer.getIfTileIsCollider(vPos.x - 1, vPos.y)) { player->move(-1, 0); }
+				else if (GetKey(olc::UP).bPressed && !renderer.getIfTileIsCollider(vPos.x, vPos.y - 1)) { player->move(0, -1); }
+				else if (GetKey(olc::DOWN).bPressed && !renderer.getIfTileIsCollider(vPos.x, vPos.y + 1)) { player->move(0, 1); }
+
+				DrawPartialDecal(player->getPosition() * TILE_SIZE, decalSheet.get(), 
+					{ player->getSprite()->getSpriteDimensions().x * (float)TILE_SIZE, player->getSprite()->getSpriteDimensions().y * (float)TILE_SIZE }, 
+					{ TILE_SIZE, TILE_SIZE }, { 1.0f, 1.0f });
+			}
 		}
 
 		void introDraw()
@@ -149,25 +126,25 @@ namespace rogu
 			rogu::Tile* wisp2 = resourceManager.getTileFromBlock("<wisp2>");
 
 			//Draw Fire?
-			if (introTimer < 9.f)
+			if (introTimer < 10.f)
 			{
-				for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 3; i++)
+				for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 2; i++)
 				{
 					renderer.writeToBufferTilePos(wisp, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4) + ((SCREEN_HEIGHT / TILE_SIZE) - 4));
 					renderer.writeToBufferTilePos(wisp, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4));
 				}
 
-				if (introTimer < 7.f)
+				if (introTimer < 9.f)
 				{
-					for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 2; i++)
+					for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 1; i++)
 					{
 						renderer.writeToBufferTilePos(wisp1, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 3) + ((SCREEN_HEIGHT / TILE_SIZE) - 7));
 						renderer.writeToBufferTilePos(wisp1, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 3) + 4);
 					}
 
-					if (introTimer < 6.f)
+					if (introTimer < 8.2f)
 					{
-						for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 1; i++)
+						for (int i = 0; i < (SCREEN_WIDTH / TILE_SIZE) * 0.5f; i++)
 						{
 							renderer.writeToBufferTilePos(wisp2, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4) + ((SCREEN_HEIGHT / TILE_SIZE) - 11));
 							renderer.writeToBufferTilePos(wisp2, rand() % (SCREEN_WIDTH / TILE_SIZE), (rand() % 4) + 7);
@@ -202,7 +179,7 @@ namespace rogu
 			renderer.writeTextToArea(centerX - 5, centerY + 8, 15, resourceManager.requestSpriteString("ROGU Engine"));
 		}
 
-		void spriteSheetDraw()
+		void mainMenuDraw()
 		{
 			rogu::Tile* stoneWall = resourceManager.getTileFromBlock("<stone_wall>");
 			rogu::Tile* wisp = resourceManager.getTileFromBlock("<wisp>");
@@ -215,13 +192,19 @@ namespace rogu
 			renderer.drawPanel(0, 0, (SCREEN_WIDTH / TILE_SIZE), fLogYStart + 1, 1, nullptr, stoneWall, rogu::BorderType::BORDER_FULL);
 
 			//TEST TEXT
-			renderer.writeTextToArea(2, fLogYStart + 2, (SCREEN_WIDTH / TILE_SIZE) - 4, resourceManager.requestSpriteString("This is a project to see if a smaller single-buffer engine is a viable concept, This is a project by Sebastian for Blind Hate Machine. You can even write tiles! Like: <fountain> and <wisp>!"));
+			renderer.writeTextToArea(2, fLogYStart + 2, (SCREEN_WIDTH / TILE_SIZE) - 4, resourceManager.requestSpriteString(
+				"Welcome to ROGU! A game where you find yourself captured by a people known as the Synod, thrown in a cell on-board their ship. Escape by any means neccessary or be inducted into their order whether you want to or not..."));
 			
 			int centerX = (SCREEN_WIDTH / TILE_SIZE) * 0.5f;
 			int centerY = (SCREEN_HEIGHT / TILE_SIZE) * 0.5f;
-			renderer.writeTextToArea(centerX - 10, centerY - 13, 22, resourceManager.requestSpriteString("Sebastian Alkstrand's"));
-			renderer.writeTextToArea(centerX - 5, centerY - 3, 15, resourceManager.requestSpriteString("ROGU Engine"));
+			//renderer.writeTextToArea(centerX - 10, centerY - 13, 22, resourceManager.requestSpriteString("Sebastian Alkstrand's"));
 			renderer.writeTextToArea(centerX - 11, centerY + 2, 22, resourceManager.requestSpriteString("You can move with <up><down><left><right>"));
+			renderer.writeTextToArea(centerX - 17, centerY + 6, 22, resourceManager.requestSpriteString("New Character"));
+			renderer.writeTextToArea(centerX - 11, centerY + 8, 22, resourceManager.requestSpriteString("<wooden_door>"));
+
+			//Check if there is a save before creating this later!
+			renderer.writeTextToArea(centerX + 3, centerY + 6, 22, resourceManager.requestSpriteString("Load  Character"));
+			renderer.writeTextToArea(centerX + 10, centerY + 8, 22, resourceManager.requestSpriteString("<wooden_door>"));
 
 			for (int q = 2; q < fLogYStart - 1; q++)
 			{
@@ -247,6 +230,7 @@ namespace rogu
 
 	private:
 		rogu::BoardRenderer renderer = rogu::BoardRenderer(SCREEN_WIDTH / TILE_SIZE, SCREEN_HEIGHT / TILE_SIZE, nullptr, TILE_SIZE);
+		EntityManager entityManager = EntityManager();
 		rogu::ResourceManager resourceManager;
 		olc::vi2d gameWindowPos = olc::vi2d(1, 1);
 		int fLogYStart = (int)(SCREEN_HEIGHT * 0.8f) / TILE_SIZE;
@@ -258,14 +242,13 @@ namespace rogu
 		float introTimer = 12.f;
 		float timer;
 
-		olc::vi2d playerPosTemp = { (SCREEN_WIDTH / TILE_SIZE) * 0.5f, (SCREEN_HEIGHT / TILE_SIZE) * 0.5f };
 	};
 }
 
 int main()
 {
 	rogu::RoguCore core;
-	if (core.Construct(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_PIXEL_SIZE, SCREEN_PIXEL_SIZE, true, true))
+	if (core.Construct(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_PIXEL_SIZE, SCREEN_PIXEL_SIZE, false, true))
 		core.Start();
 	return 0;
 }
